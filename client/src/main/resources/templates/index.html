@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <style>
+
+        img {
+            width: 500px;
+            height: 300px;
+        }
+
+        .xBtn {
+            position:  absolute;
+            width: 30px;
+            height: 30px;
+            top: 1px;
+            right: 0px;
+        }
+
+        a {
+            position: absolute;
+            left:32px;
+
+        }
+
+    </style>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
+</head>
+
+<body>
+<div class="container">
+
+    <div id = "loginForm" class="container" style="padding-top: 40px; padding-bottom: 30px">
+        <label>email</label> <input type="text" id="email" />
+        <label>password</label> <input type="password" id="password" />
+        <input class="btn btn-info" id="loginBtn" type="button" value="로그인" onclick="login()">
+    </div>
+
+    <div class="container" style="padding-top: 40px; padding-bottom: 30px">
+
+
+        <!--<button id="getSlotData()" type="button" class="btn btn-info" onclick="getSlotData()">슬롯데이터</button>-->
+        <!--<div class="dropdown">-->
+            <!--<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example-->
+                <!--<span class="caret"></span></button>-->
+
+            <!--<ul class="dropdown-menu">-->
+                <!--<li><a href="#">HTML</a></li>-->
+                <!--<li><a href="#">CSS</a></li>-->
+                <!--<li><a href="#">JavaScript</a></li>-->
+            <!--</ul>-->
+        <!--</div>-->
+
+        <button id="addBtn" type="button" class="btn btn-info" onclick="add()">추가</button>
+        <button id="saveBtn" type="button" class="btn btn-info" onclick="save()" >저장</button>
+        <button id="updateBtn" type="button" class="btn btn-info" onclick="edit()" >수정</button>
+    </div>
+
+    <div class="container-fluid" id="sortable" style="margin-top: 50px;">
+
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script>
+    var layouts = []
+
+    var layout0 = '<div class="group" id="0" style="position: relative;">' +
+        '<img src="https://ssl.phinf.net/audio/20161206_72/1481029794871bRhHz_PNG/%BF%AD%B8%B0%BF%AC%B4%DC_v2_%C3%A4%B3%CE%BC%B6%B3%D7%C0%CF.png" />'
+        +'<a onclick="drop(0)"><img src="x-btn.png" class="xBtn"/></a>'+
+        '</div>';
+    var layout1 = '<div class="group" id="1" style="position: relative;"><img src="https://ssl.phinf.net/audio/20161021_107/1477026031694E3omc_PNG/5.png" />'
+        +'<a onclick="drop(1)"><img src="x-btn.png" class="xBtn"/></a>'+
+        '</div>';
+    var layout2 = '<div class="group" id="2" style="position: relative;"><img src="https://ssl.phinf.net/audio/20161229_23/1482997895704un3yL_PNG/%C3%E2%C6%C7%BB%E7%BD%E6%B3%D7%C0%CF_1280_1280.png" />'
+        +'<a onclick="drop(2)"><img src="x-btn.png" class="xBtn"/></a>'+
+        '</div>';
+    var layout3 = '<div class="group" id="3" style="position: relative;"><img src="https://ssl.phinf.net/audio/20161103_171/1478151649754vyjlO_PNG/img_channel_Dedit.png" />'
+        +'<a onclick="drop(3)"><img src="x-btn.png" class="xBtn"/></a>'+
+        '</div>';
+    var layout4 = '<div class="group" id="4" style="position: relative;"><img src="https://ssl.phinf.net/audio/20170704_53/14991434102151Vo59_JPEG/AUDIOCLIP-EPISODE.jpg" />'
+        +'<a onclick="drop(4)"><img src="x-btn.png" class="xBtn"/></a>'+
+        '</div>';
+    var defaultLayout = '<div class="group" id="@id" style="height:200px; border: 1px solid red; position: relative;">'
+        +'<a onclick="drop(@id)"><img src="x-btn.png" class="xBtn""/></a>'+
+        '</div>'
+
+    var count = 0;
+    var userId = "null";
+    var list = [];
+    // 1. 레이아웃 초기화
+
+    $( function() {
+        if(userId == "null") {
+            layouts.push(layout0);
+            layouts.push(layout1);
+            layouts.push(layout2);
+            layouts.push(layout3);
+            layouts.push(layout4);
+
+            // 디폴트 리스트
+            list = [0, 1, 2, 3, 4];
+            showLayoutList(list);
+
+            $(".xBtn").hide();
+            $("#saveBtn").hide();
+            $("#addBtn").hide();
+            $("#updateBtn").hide();
+
+            count = list.length;
+        }
+    });
+
+    // 2. 로그인
+    function login(){
+        var data = {
+            email : $("#email").val(),
+            password : $("#password").val()
+        }
+
+        $.ajax({
+            url: "http://localhost:8080/users/login",
+            type: "POST",
+            data : JSON.stringify(data),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (user) {
+
+                if(user == null) {
+                    alert("로그인 실패");
+                } else {
+                    //alert("로그인 성공");
+                    $("#loginForm").hide();
+                    $("#updateBtn").show();
+
+                    userId = user.id;
+                    list = getUserLayout();
+
+                    console.log("login list:" + list);
+                }
+            },
+            error : function(e1, e2){
+                alert("에!러!");
+            }
+        });
+    }
+
+    function getUserLayout(){
+
+        var data = {
+            userId: userId
+        }
+
+        $.ajax({
+            url: "http://localhost:8080/layout",
+            type: "POST",
+            data: JSON.stringify(data),
+            dataType: "json",
+            contentType: "application/json",
+
+            success: function (layout) {
+                console.log(layout);
+                if (layout == null) {
+                    alert("Layout Read 실패");
+                } else {
+                    //alert("Layout Read 성공");
+                    str = layout.layoutStr;
+                    list = [];
+                    for (var i = 0; i < str.length; i++) {
+                        if(str.charAt(i) != '|') list.push(str.charAt(i));
+                    }
+                    console.log("getUserLayout LIST : " + list);
+                    count = list.length;
+                    showLayoutList(list);
+                }
+            },
+            error: function (e1, e2) {
+                alert("에!러!");
+            }
+        });
+    }
+
+    // list 출력(user layout 정보 뿌려주기)
+    function showLayoutList(list) {
+
+        console.log("list: " + list);
+        var layoutSort = ""
+        var lastCount = 0;
+
+        list.forEach(function(slotId){
+            layoutSort += layouts[slotId];
+        });
+
+        count = list.length;
+        $("#sortable").html(layoutSort);
+        $(".xBtn").hide();
+    }
+
+    // 3. 수정 권한
+    function edit(){
+        $( "#sortable" ).sortable();
+        $( "#sortable" ).disableSelection();
+        $("#updateBtn").hide();
+        $(".xBtn").show();
+        $("#saveBtn").show();
+        $("#addBtn").show();
+    }
+
+    // 4. 수정(추가 및 삭제)
+    function add() {
+        console.log("count:" + count);
+
+        if(count < 5) {
+            $("#sortable").append(defaultLayout.replace(/@id/gi, count))
+            count++;
+        } else {
+            alert("최대 5개까지 가능합니다.");
+        }
+    };
+
+    function drop(id) {
+        console.log("count:" + count);
+
+        if(count > 0) {
+            $("#" + id).remove();
+            count--;
+        }
+    };
+
+    // 5. 저장
+    function save() {
+
+        var layoutStr = "";
+        $("#sortable").find(".group").each(function(i, v) {
+            layoutStr += v.id
+            layoutStr += '|'
+        })
+
+        console.log("저장 데이터 : " + layoutStr);
+
+        var data = {
+            userId : userId,
+            layoutStr : layoutStr
+        }
+
+        $.ajax({
+            url: "http://localhost:8080/layout/update",
+            type: "POST",
+            data : JSON.stringify(data),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (layout) {
+
+                if(layout == null) {
+                    alert("저장 실패");
+                } else {
+                   // alert("저장 성공");
+
+                    $("#updateBtn").show();
+                    $("#saveBtn").hide();
+                    $("#addBtn").hide();
+                    $(".xBtn").hide();
+                    $( "#sortable" ).sortable( "disable" );
+                }
+            },
+            error : function(e1, e2){
+                alert("에!러!");
+            }
+        });
+    };
+
+    var slotNameList = [];
+    // Get Slot Data
+    function getSlotData(){
+        $.ajax({
+            url: "http://localhost:8080/slot",
+            type: "GET",
+            data : JSON,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (slot) {
+
+                if(slot == null) {
+                    alert("호출 실패");
+                } else {
+                    for (i in slot) {
+                        slotNameList.push(slot[i].slotName);
+                        alert(slot[i].slotName);
+                    }
+                }
+            },
+            error : function(e1, e2){
+                alert("에!러!");
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html>

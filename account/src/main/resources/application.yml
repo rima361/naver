@@ -1,0 +1,23 @@
+spring:
+
+  profiles: default
+
+  jpa:
+    generate-ddl: false
+    show-sql: true
+
+datasource:
+    master:
+       driver-class-name: "com.mysql.jdbc.Driver"
+       url: "jdbc:mysql://104.198.127.208:3306/hackday?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false"
+       username: 'root'
+       password: dhvmsxpdlqmf
+       initial-size: 10
+       max-active: 50
+       max-idle: 50
+       min-idle: 10
+       max-wait: 5000
+       connection-test-query: "SELECT 1"
+       testWhileIdle: "true"
+       minEvictableIdleTimeMillis: "3600000"
+       timeBetweenEvictionRunsMillis: "60000"
